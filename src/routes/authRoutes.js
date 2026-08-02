@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
+const { protect } = require('../middlewares/authMiddleware');
 const rateLimit = require('express-rate-limit');
 
 const loginLimiter = rateLimit({
@@ -18,5 +19,7 @@ const router = express.Router();
 
 router.post('/login', loginLimiter, authController.login);
 router.post('/logout', authController.logout);
+router.get('/me', protect, authController.getMe);
+router.patch('/update-me', protect, authController.updateMe);
 
 module.exports = router;

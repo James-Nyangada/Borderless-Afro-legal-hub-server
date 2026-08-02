@@ -53,3 +53,34 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.logout = (req, res) => {
   res.status(200).json({ status: 'success' });
 };
+
+exports.getMe = (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: req.user
+    }
+  });
+};
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  let user = await User.findById(req.user.id).select('+password');
+  
+  if (req.body.password) {
+    user.password = req.body.password;
+  }
+  
+  if (req.body.name) user.name = req.body.name;
+  if (req.body.email) user.email = req.body.email;
+  
+  await user.save();
+
+  user.password = undefined;
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user
+    }
+  });
+});
