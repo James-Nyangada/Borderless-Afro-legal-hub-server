@@ -34,7 +34,8 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
     id: activity._id.toString(),
     type: activity.type,
     text: activity.text,
-    time: timeSince(activity.createdAt)
+    time: timeSince(activity.createdAt),
+    createdAt: activity.createdAt
   }));
 
   res.status(200).json({
@@ -47,6 +48,35 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
         contactFormSubmissions: contactSubmissionsCount
       },
       recentActivity
+    }
+  });
+});
+
+exports.getAllActivities = catchAsync(async (req, res, next) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 50;
+  const skip = (page - 1) * limit;
+
+  const activitiesRaw = await ActivityLog.find().sort('-createdAt').skip(skip).limit(limit);
+  const total = await ActivityLog.countDocuments();
+
+  const activities = activitiesRaw.map(activity => ({
+    id: activity._id.toString(),
+    type: activity.type,
+    text: activity.text,
+    time: timeSince(activity.createdAt),
+    createdAt: activity.createdAt
+  }));
+
+  res.status(200).json({
+    status: 'success',
+    results: activities.length,
+    data: {
+      activities,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
     }
   });
 });
