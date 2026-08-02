@@ -22,4 +22,7 @@ router.post('/logout', authController.logout);
 router.get('/me', protect, authController.getMe);
 router.patch('/update-me', protect, authController.updateMe);
 
+router.post('/forgot-password', authController.forgotPassword);
+router.patch('/reset-password/:token', authController.resetPassword);
+
 module.exports = router;
