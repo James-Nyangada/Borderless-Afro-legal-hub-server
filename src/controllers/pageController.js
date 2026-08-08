@@ -1,6 +1,7 @@
 const Page = require('../models/Page');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
+const { logActivity } = require('../services/activityLogger');
 
 // Default pages structure to seed if missing
 const DEFAULT_PAGES = [
@@ -107,6 +108,8 @@ exports.updatePage = catchAsync(async (req, res, next) => {
   if (!page) {
     return next(new AppError('No page found with that identifier', 404));
   }
+
+  await logActivity('page', `Page updated: "${page.title}"`);
 
   res.status(200).json({
     status: 'success',

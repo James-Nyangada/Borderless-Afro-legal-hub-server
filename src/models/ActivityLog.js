@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const activityLogSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['post', 'comment', 'subscriber', 'submission', 'system', 'category', 'user'],
+    enum: ['post', 'comment', 'subscriber', 'submission', 'system', 'category', 'user', 'page'],
     required: true
   },
   text: {
