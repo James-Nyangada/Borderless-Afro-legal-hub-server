@@ -15,30 +15,6 @@ const app = express();
 // Set security HTTP headers
 app.use(helmet());
 
-// Development logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
-// Limit requests from same API
-const limiter = rateLimit({
-  max: 100, // 100 requests per hour
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!'
-});
-app.use('/api', limiter);
-
-// Body parser, reading data from body into req.body. 50mb limit for images/payloads
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
-
-// Data sanitization against XSS (disabled because it escapes all rich text HTML)
-// Consider using DOMPurify in the future if strict HTML sanitization is needed
-// app.use(xss());
-
 // Implement CORS
 const allowedOrigins = [
   'http://localhost:3000',
@@ -59,13 +35,35 @@ app.use(cors({
   credentials: true
 }));
 
-// Handle OPTIONS requests (preflight) properly for Express 5
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  next();
+// Handle OPTIONS requests (preflight) properly
+app.options('*', cors());
+
+// Development logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Limit requests from same API
+const limiter = rateLimit({
+  max: 5000, // Increased limit from 100 to 5000 requests per hour
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!',
+  skip: (req) => req.method === 'OPTIONS' // Never rate limit OPTIONS preflight requests
 });
+app.use('/api', limiter);
+
+// Body parser, reading data from body into req.body. 50mb limit for images/payloads
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS (disabled because it escapes all rich text HTML)
+// Consider using DOMPurify in the future if strict HTML sanitization is needed
+// app.use(xss());
+
+
 
 // 2) ROUTES
 const authRouter = require('./routes/authRoutes');
